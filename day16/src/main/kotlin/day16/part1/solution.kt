@@ -1,9 +1,10 @@
 package day16.part1
 
 import Coordinate
-import FourDirections
-import FourDirections.*
+import FourDirectionFlipped
+import FourDirectionFlipped.*
 import origin
+import toSpecializedCoordinateMap
 import xRange
 import yRange
 import java.io.BufferedReader
@@ -18,13 +19,13 @@ fun day16Part1(input: BufferedReader): Any {
   return map.calculateLights(origin, RIGHT)
 }
 
-fun Map<Coordinate, Mirror>.calculateLights(start: Coordinate = origin, startDirection: FourDirections): Int {
+fun Map<Coordinate, Mirror>.calculateLights(start: Coordinate = origin, startDirection: FourDirectionFlipped): Int {
   val yRange = yRange().let { (a, b) -> a..b }
   val xRange = xRange().let { (a, b) -> a..b }
   val lights = Array(yRange.last + 1) { IntArray(xRange.last + 1) }
-  val queue = LinkedList<Pair<Coordinate, FourDirections>>()
+  val queue = LinkedList<Pair<Coordinate, FourDirectionFlipped>>()
   queue.add(start to startDirection)
-  val visited = mutableSetOf<Pair<Coordinate, FourDirections>>()
+  val visited = mutableSetOf<Pair<Coordinate, FourDirectionFlipped>>()
 
   while (queue.isNotEmpty()) {
     val (current, direction) = queue.removeFirst()
@@ -38,22 +39,25 @@ fun Map<Coordinate, Mirror>.calculateLights(start: Coordinate = origin, startDir
   return lights.sumOf { line -> line.count { it > 0 } }
 }
 
-enum class Mirror(val char: Char, val move: (Coordinate, FourDirections) -> List<Pair<Coordinate, FourDirections>>) {
-  EMPTY('.', { coordinate, direction -> listOf(coordinate + direction.direction to direction) }),
+enum class Mirror(
+  val char: Char,
+  val move: (Coordinate, FourDirectionFlipped) -> List<Pair<Coordinate, FourDirectionFlipped>>
+) {
+  EMPTY('.', { coordinate, direction -> listOf(direction + coordinate to direction) }),
   MIRROR_UP('/', { coordinate, direction ->
     when (direction) {
-      DOWN -> listOf(RIGHT).map { it.direction + coordinate to it }
-      UP -> listOf(LEFT).map { it.direction + coordinate to it }
-      LEFT -> listOf(UP).map { it.direction + coordinate to it }
-      RIGHT -> listOf(DOWN).map { it.direction + coordinate to it }
+      DOWN -> listOf(LEFT).map { it + coordinate to it }
+      UP -> listOf(RIGHT).map { it + coordinate to it }
+      LEFT -> listOf(DOWN).map { it + coordinate to it }
+      RIGHT -> listOf(UP).map { it + coordinate to it }
     }
   }),
   MIRROR_DOWN('\\', { coordinate, direction ->
     when (direction) {
-      DOWN -> listOf(LEFT).map { it.direction + coordinate to it }
-      UP -> listOf(RIGHT).map { it.direction + coordinate to it }
-      LEFT -> listOf(DOWN).map { it.direction + coordinate to it }
-      RIGHT -> listOf(UP).map { it.direction + coordinate to it }
+      DOWN -> listOf(RIGHT).map { it + coordinate to it }
+      UP -> listOf(LEFT).map { it + coordinate to it }
+      LEFT -> listOf(UP).map { it + coordinate to it }
+      RIGHT -> listOf(DOWN).map { it + coordinate to it }
     }
   }),
   SPLITTER_VERTICAL('|', { coordinate, direction ->
@@ -74,7 +78,4 @@ enum class Mirror(val char: Char, val move: (Coordinate, FourDirections) -> List
   }
 }
 
-fun BufferedReader.parseMaze(): Map<Coordinate, Mirror> =
-  lineSequence().flatMapIndexed { y, line ->
-    line.mapIndexed { x, char -> Coordinate(x, y) to Mirror.fromChar(char) }
-  }.toMap()
+fun BufferedReader.parseMaze() = toSpecializedCoordinateMap(Mirror::fromChar)
