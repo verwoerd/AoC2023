@@ -20,3 +20,22 @@ fun List<Long>.lcmForList(): Long = fold(1L) { lcmOfAllNumbers, number ->
   if (result == 0L) return 0
   result
 }
+
+fun gcd(number1: Long, number2: Long): Long = when (number2) {
+  0L -> number1
+  else -> gcd(number2, number1 % number2)
+}
+
+fun crossProduct(a: Coordinate, b: Coordinate) = a.x.toLong() * b.y.toLong() - b.x.toLong() * a.y.toLong()
+
+fun List<Coordinate>.polygonArea(): Double =
+  abs((1..<size).sumOf { it -> crossProduct(get(it), get(it - 1)) } / 2.0)
+
+fun List<Coordinate>.pointsOnBoundary(): Long =
+  zipWithNext().sumOf { (a, b) ->
+    val delta = a - b
+    abs(gcd(delta.x.toLong(), delta.y.toLong()))
+  }.let {
+    val delta = last() - first()
+    abs(gcd(delta.x.toLong(), delta.y.toLong())) + it
+  }
