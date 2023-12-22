@@ -18,6 +18,7 @@ data class Coordinate(val x: Int, val y: Int) : Comparable<Coordinate> {
   operator fun div(other: Coordinate): Coordinate = Coordinate(x / other.x, y / other.y)
   infix fun plusY(i: Number): Coordinate = plus(Coordinate(0, i.toInt()))
   infix fun plusX(i: Number): Coordinate = plus(Coordinate(i.toInt(), 0))
+  fun mod(other: Coordinate): Coordinate  = Coordinate(x.mod(other.x), y.mod(other.y))
 }
 
 
